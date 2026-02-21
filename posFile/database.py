@@ -1,51 +1,80 @@
 import mysql.connector
 from mysql.connector import Error
 
+
 class Database:
 
     def __init__(self):
         self.host = "localhost"
         self.user = "root"
-        self.password = "12345678"  
+        self.password = "12345678"
         self.database = "pos_db"
+        self.connection = None
+        self.connect()
+
+    def connect(self):
+        try:
+            self.connection = mysql.connector.connect(
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                database=self.database,
+            )
+        except mysql.connector.Error as e:
+            # Try to connect without database first
+            try:
+                conn = mysql.connector.connect(
+                    host=self.host, user=self.user, password=self.password
+                )
+                cursor = conn.cursor()
+                cursor.execute("CREATE DATABASE IF NOT EXISTS pos_db")
+                conn.close()
+                self.connection = mysql.connector.connect(
+                    host=self.host,
+                    user=self.user,
+                    password=self.password,
+                    database=self.database,
+                )
+            except mysql.connector.Error as e:
+                print(f"Could not connect to database: {e}")
+                self.connection = None
 
     def setup_database(self):
         try:
-          
+
             conn = mysql.connector.connect(
-                host=self.host,
-                user=self.user,
-                password=self.password
+                host=self.host, user=self.user, password=self.password
             )
             cursor = conn.cursor()
             cursor.execute("CREATE DATABASE IF NOT EXISTS pos_db")
             cursor.execute("USE pos_db")
             print("Database created and selected.")
 
-
-        
-
-        
             # Users
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     username VARCHAR(100) NOT NULL,
                     password VARCHAR(100) NOT NULL
                    
                 )
-            """)
+            """
+            )
 
             # Categories
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS categories (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(100)
                 )
-            """)
+            """
+            )
 
             # items
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(100),
@@ -54,18 +83,22 @@ class Database:
                     category_id INT,
                     FOREIGN KEY (category_id) REFERENCES categories(id)
                 )
-            """)
+            """
+            )
 
             # Staff
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS staff (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(225),
                     role VARCHAR(225)
                 )
-            """)
-            #safe transtions
-            cursor.execute("""
+            """
+            )
+            # safe transtions
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS safe_transactions (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     amount DECIMAL(10,2),
@@ -75,9 +108,11 @@ class Database:
                     staff_id int,
                     FOREIGN KEY (staff_Id) REFERENCES staff(id)
                 )
-            """)
+            """
+            )
             # Sales
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS sales (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     items_id INT,
@@ -88,14 +123,17 @@ class Database:
                     FOREIGN KEY (items_id) REFERENCES items(id),
                     FOREIGN KEY (staff_id) REFERENCES staff(id)
                 )
-            """)
+            """
+            )
 
             # Insert default admin
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT IGNORE INTO users (username, password)
                 VALUES ('admin', 'password')
 
-            """)
+            """
+            )
             conn.commit()
             conn.close()
             print("Database setup complete")
@@ -119,8 +157,10 @@ class Database:
             return cursor.fetchall()
         except mysql.connector.Error as e:
             raise Exception(f"Fetch failed: {e}")
+
     def close(self):
         if self.connection:
             self.connection.close()
-Database().setup_database()
 
+
+Database().setup_database()

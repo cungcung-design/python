@@ -7,6 +7,9 @@ from categorymangement import CategoryFrame
 from Item_management import ItemFrame
 from sales_report import SalesReportFrame
 from staff_management import StaffFrame
+from safe_list_frame import SafeListFrame
+from tkinter import messagebox
+
 
 
 class POSApp:
@@ -19,16 +22,17 @@ class POSApp:
         self.db = Database()
         self.frame = {}
         self.create_frames()
-        self.show_frame("Dashboard")
+        self.show_frame("Login")
 
     def create_frames(self):
-        self.frame["Login"] = LoginFrame(self.root, self.db)
+        self.frame["Login"] = LoginFrame(self.root, self, self.db)
 
         self.frame["Dashboard"] = DashboardFrame(self.root, self)
         self.frame["Category"] = CategoryFrame(self.root, self, self.db)
         self.frame["Item"] = ItemFrame(self.root, self, self.db)
         self.frame["SalesReport"] = SalesReportFrame(self.root, self, self.db)
         self.frame["Staff"] = StaffFrame(self.root, self, self.db)
+        self.frame["SafeList"] = SafeListFrame(self.root, self, self.db)
 
         for frame in self.frame.values():
             frame.pack(fill="both", expand=True)
@@ -45,6 +49,8 @@ class POSApp:
             self.frame[frame_name].load_staff()
         elif frame_name == "SalesReport":
             self.frame[frame_name].load_sales_transactions()
+        elif frame_name == "SafeList":
+            self.frame[frame_name].load_safe_list()
 
 
 if __name__ == "__main__":
