@@ -8,7 +8,6 @@ class ItemFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.db = db
-        self.load_categories_into_combobox()
         self.configure(bg="white")
 
         frame = tk.Frame(self, bg="white", padx=20, pady=20)
@@ -43,10 +42,14 @@ class ItemFrame(tk.Frame):
             row=2, column=2, sticky="e", padx=5, pady=10
         )
 
-        
-        self.category_combobox = ttk.Combobox(frame, width=30, state = "readonly")
-        self.category_combobox.grid(row=2, column=3, padx=5,pady=10)
-        
+        self.category_combobox_var = tk.StringVar()
+
+        self.category_combobox = ttk.Combobox(
+            frame, width=30, state="readonly", textvariable=self.category_combobox_var
+        )
+
+        self.category_combobox.grid(row=2, column=3, padx=5, pady=10)
+
         self.load_categories_into_combobox()
 
         tk.Button(
@@ -140,49 +143,56 @@ class ItemFrame(tk.Frame):
         barcode = self.barcode_entry.get()
         category = self.category_combobox.get()
 
-        if name and price and category:
-            try:
-                category_id = self.category_map.get(category)
-                self.db.execute_query(
-                    "INSERT INTO items (name, price, barcode, category_id) VALUES (%s, %s, %s, %s)",
-                    (name, price, barcode, category_id),
-                )
-                messagebox.showinfo("Success", "Item created successfully!")
-                self.clear_entries()
-                self.load_items()
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to create item: {str(e)}")
-        else:
-            messagebox.showwarning("Input Error", "Please enter item name and price")
+        if not name or not price or not category:
+            messagebox.showwarning("Input Error", "Please fill all required fields")
+            return
+        try:
+            category_id = self.category_map.get(category)
+
+            self.db.execute_query(
+                "INSERT INTO items (name, price, barcode, category_id) VALUES (%s, %s, %s, %s)",
+                (name, price, barcode, category_id),
+            )
+            messagebox.showinfo("Success", "Item created successfully!")
+            self.clear_entries()
+            self.load_items()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create item: {str(e)}")
 
     def update_item(self):
         selected = self.item_tree.selection()
-        if selected:
-            item = self.item_tree.item(selected)
-            item_id = item["values"][0]
-            name = self.name_entry.get()
-            price = self.price_entry.get()
-            barcode = self.barcode_entry.get()
-            category = self.category_combobox.get()
 
-            if name and price:
-                try:
-                    self.db.execute_query(
-                        "UPDATE items SET name = %s, price = %s, barcode = %s, category_id = %s WHERE id = %s",
-                        (name, price, barcode, category, item_id),
-                    )
-                    messagebox.showinfo("Success", "Item updated successfully!")
-                    self.clear_entries()
-                    self.load_items()
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to update item: {str(e)}")
-            else:
-                messagebox.showwarning(
-                    "Input Error", "Please enter item name and price"
-                )
-        else:
+        if not selected:
             messagebox.showwarning("Selection Error", "Please select an item to update")
+            return
 
+        item = self.item_tree.item(selected)
+        item_id = item["values"][0]
+
+        name = self.name_entry.get().strip()
+        price = self.price_entry.get().strip()
+        barcode = self.barcode_entry.get().strip()
+        category = self.category_combobox.get()
+
+        if not name or not price or not category:
+            messagebox.showwarning("Input Error", "Please fill all fields")
+            return
+
+        try:
+            category_id = self.category_map.get(category)
+
+            self.db.execute_query(
+            "UPDATE items SET name=%s, price=%s, barcode=%s, category_id=%s WHERE id=%s",
+            (name, price, barcode, category_id, item_id),
+        )
+
+            messagebox.showinfo("Success", "Item updated successfully!")
+
+            self.clear_entries()
+            self.load_items()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to update item: {str(e)}")
     def delete_item(self):
         selected = self.item_tree.selection()
         if selected:
@@ -201,16 +211,15 @@ class ItemFrame(tk.Frame):
         self.name_entry.delete(0, tk.END)
         self.price_entry.delete(0, tk.END)
         self.barcode_entry.delete(0, tk.END)
-        self.category_entry.delete(0, tk.END)
+        self.category_combobox.set("")
 
-
-def load_categories_into_combobox(self):
-    try:
-        cursor = self.db.connection.cursor()
-        cursor.execute("SELECT id, name FROM categories")
-        rows = cursor.fetchall()
-        self.category_map = {name: cat_id for cat_id, name in rows}
-        self.category_combobox["values"] = list(self.category_map.keys())
-        cursor.close()
-    except Exception as e:
-        messagebox.showerror("Error", f"Failed to load categories: {str(e)}")            
+    def load_categories_into_combobox(self):
+        try:
+            cursor = self.db.connection.cursor()
+            cursor.execute("SELECT id, name FROM categories")
+            rows = cursor.fetchall()
+            self.category_map = {name: cat_id for cat_id, name in rows}
+            self.category_combobox["values"] = list(self.category_map.keys())
+            cursor.close()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load categories: {str(e)}")
