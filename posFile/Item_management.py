@@ -8,7 +8,7 @@ class ItemFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         self.db = db
-
+        self.load_categories_into_combobox()
         self.configure(bg="white")
 
         frame = tk.Frame(self, bg="white", padx=20, pady=20)
@@ -43,8 +43,11 @@ class ItemFrame(tk.Frame):
             row=2, column=2, sticky="e", padx=5, pady=10
         )
 
-        self.category_entry = tk.Entry(frame, width=30)
-        self.category_entry.grid(row=2, column=3, padx=5, pady=10)
+        
+        self.category_combobox = ttk.Combobox(frame, width=30, state = "readonly")
+        self.category_combobox.grid(row=2, column=3, padx=5,pady=10)
+        
+        self.load_categories_into_combobox()
 
         tk.Button(
             frame,
@@ -135,13 +138,14 @@ class ItemFrame(tk.Frame):
         name = self.name_entry.get()
         price = self.price_entry.get()
         barcode = self.barcode_entry.get()
-        category = self.category_entry.get()
+        category = self.category_combobox.get()
 
-        if name and price:
+        if name and price and category:
             try:
+                category_id = self.category_map.get(category)
                 self.db.execute_query(
                     "INSERT INTO items (name, price, barcode, category_id) VALUES (%s, %s, %s, %s)",
-                    (name, price, barcode, category),
+                    (name, price, barcode, category_id),
                 )
                 messagebox.showinfo("Success", "Item created successfully!")
                 self.clear_entries()
@@ -159,7 +163,7 @@ class ItemFrame(tk.Frame):
             name = self.name_entry.get()
             price = self.price_entry.get()
             barcode = self.barcode_entry.get()
-            category = self.category_entry.get()
+            category = self.category_combobox.get()
 
             if name and price:
                 try:
@@ -198,3 +202,15 @@ class ItemFrame(tk.Frame):
         self.price_entry.delete(0, tk.END)
         self.barcode_entry.delete(0, tk.END)
         self.category_entry.delete(0, tk.END)
+
+
+def load_categories_into_combobox(self):
+    try:
+        cursor = self.db.connection.cursor()
+        cursor.execute("SELECT id, name FROM categories")
+        rows = cursor.fetchall()
+        self.category_map = {name: cat_id for cat_id, name in rows}
+        self.category_combobox["values"] = list(self.category_map.keys())
+        cursor.close()
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to load categories: {str(e)}")            
