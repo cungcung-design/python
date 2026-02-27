@@ -149,6 +149,8 @@ class CategoryFrame(tk.Frame):
                 self.db.execute_query(
                     "DELETE FROM categories WHERE id = %s", (category_id,)
                 )
+                # Reset AUTO_INCREMENT to 1 after deletion
+                self.db.execute_query("ALTER TABLE categories AUTO_INCREMENT = 1")
                 messagebox.showinfo("Success", "Category deleted successfully!")
                 self.load_categories()
             except Exception as e:

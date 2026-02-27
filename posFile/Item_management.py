@@ -9,6 +9,7 @@ class ItemFrame(tk.Frame):
         self.controller = controller
         self.db = db
         self.configure(bg="white")
+        self.category_map = {}
 
         frame = tk.Frame(self, bg="white", padx=20, pady=20)
         frame.pack(expand=True)
@@ -146,9 +147,14 @@ class ItemFrame(tk.Frame):
         if not name or not price or not category:
             messagebox.showwarning("Input Error", "Please fill all required fields")
             return
-        try:
-            category_id = self.category_map.get(category)
 
+        category_id = self.category_map.get(category)
+
+        if category_id is None:
+            messagebox.showwarning("Category Error", "Please select a valid category")
+            return
+
+        try:
             self.db.execute_query(
                 "INSERT INTO items (name, price, barcode, category_id) VALUES (%s, %s, %s, %s)",
                 (name, price, barcode, category_id),
@@ -169,22 +175,26 @@ class ItemFrame(tk.Frame):
         item = self.item_tree.item(selected)
         item_id = item["values"][0]
 
-        name = self.name_entry.get().strip()
-        price = self.price_entry.get().strip()
-        barcode = self.barcode_entry.get().strip()
+        name = self.name_entry.get()
+        price = self.price_entry.get()
+        barcode = self.barcode_entry.get()
         category = self.category_combobox.get()
 
         if not name or not price or not category:
             messagebox.showwarning("Input Error", "Please fill all fields")
             return
 
-        try:
-            category_id = self.category_map.get(category)
+        category_id = self.category_map.get(category)
 
+        if category_id is None:
+            messagebox.showwarning("Category Error", "Please select a valid category")
+            return
+
+        try:
             self.db.execute_query(
-            "UPDATE items SET name=%s, price=%s, barcode=%s, category_id=%s WHERE id=%s",
-            (name, price, barcode, category_id, item_id),
-        )
+                "UPDATE items SET name=%s, price=%s, barcode=%s, category_id=%s WHERE id=%s",
+                (name, price, barcode, category_id, item_id),
+            )
 
             messagebox.showinfo("Success", "Item updated successfully!")
 
@@ -193,6 +203,7 @@ class ItemFrame(tk.Frame):
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to update item: {str(e)}")
+
     def delete_item(self):
         selected = self.item_tree.selection()
         if selected:

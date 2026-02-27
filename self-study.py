@@ -129,8 +129,32 @@
 # app.exec_()
 
 
-import math
-a = float(input("enter side A: "))
-b = float(input("enter side B: "))
-c = math.sqrt(pow(a,2) + pow(b,2))
-print(f"The area of the triangle is: ", c = {c})
+# import math
+# a = float(input("enter side A: "))
+# b = float(input("enter side B: "))
+# c = math.sqrt(pow(a,2) + pow(b,2))
+# print(f"The area of the triangle is: ", c = {c})
+
+import tkinter as tk
+from tkinter import ttk
+import time
+
+def start():
+    task = 10
+    x = 0
+    while x < task:
+      time.sleep(1)
+      bar["value"]+=10
+      x+=1
+      percent.set(str(x / task * 100) + "%")
+      root.update_idletasks()
+root = tk.Tk()
+
+percent = tk.StringVar()
+bar = ttk.Progressbar(root, orient="horizontal",length=300, mode="determinate")
+bar.pack(padx=10, pady=10)
+percetLabel  = tk.Label(root, text="0%" ,textvariable=percent).pack()
+button = tk.Button(root, text="Hello",command=start ).pack()
+
+
+root.mainloop()

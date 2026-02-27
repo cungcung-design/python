@@ -7,7 +7,7 @@ from categorymangement import CategoryFrame
 from Item_management import ItemFrame
 from sales_report import SalesReportFrame
 from staff_management import StaffFrame
-from safe_list_frame import SafeListFrame
+from safe_list_frame import POSSalesFrame
 from tkinter import messagebox
 
 
@@ -32,7 +32,7 @@ class POSApp:
         self.frame["Item"] = ItemFrame(self.root, self, self.db)
         self.frame["SalesReport"] = SalesReportFrame(self.root, self, self.db)
         self.frame["Staff"] = StaffFrame(self.root, self, self.db)
-        self.frame["SafeList"] = SafeListFrame(self.root, self, self.db)
+        self.frame["SafeList"] = POSSalesFrame(self.root, self, self.db)
 
         for frame in self.frame.values():
             frame.pack(fill="both", expand=True)
