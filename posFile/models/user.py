@@ -1,0 +1,11 @@
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
+class User:
+    id: Optional[int]
+    username: str
+    password: str
+    role: str = "cashier"
+    staff_id: Optional[int] = None
